@@ -1,0 +1,41 @@
+// Prisma schema for Plinko Lab
+// Database: SQLite
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Round {
+  id               String    @id @default(cuid())
+  createdAt        DateTime  @default(now())
+  status           String    // "committed", "playing", "completed", "revealed"
+  
+  // Provably-fair fields
+  nonce            String
+  commitHex        String    // SHA256(serverSeed + ":" + nonce)
+  serverSeed       String?   // Hidden until revealed
+  clientSeed       String
+  combinedSeed     String    // SHA256(serverSeed + ":" + clientSeed + ":" + nonce)
+  pegMapHash       String    // SHA256(JSON.stringify(pegMap))
+  
+  // Game configuration
+  rows             Int       @default(12)
+  dropColumn       Int       // 0-12
+  
+  // Results
+  binIndex         Int       // Final landing bin (0-12)
+  payoutMultiplier Float
+  betCents         Int       // Bet amount in cents
+  pathJson         String    // JSON string of the path taken
+  
+  // Reveal timestamp
+  revealedAt       DateTime?
+  
+  @@index([createdAt])
+  @@index([status])
+}
