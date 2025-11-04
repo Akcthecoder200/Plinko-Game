@@ -65,6 +65,13 @@ function generatePegMap(rng: DeterministicRNG, dropColumn: number): PegBias[] {
 /**
  * Simulate ball drop through pegs
  * Returns the path taken and final bin index
+ *
+ * The ball counts how many times it goes RIGHT (R).
+ * Starting from dropColumn doesn't matter for determinism,
+ * we just count R moves to get final bin.
+ *
+ * After 12 rows, ball will have made 12 decisions (L or R).
+ * Final bin = number of R decisions (0-12).
  */
 function simulateDrop(
   rng: DeterministicRNG,
@@ -72,9 +79,13 @@ function simulateDrop(
   dropColumn: number
 ): { path: GamePath[]; binIndex: number } {
   const path: GamePath[] = [];
-  let currentCol = dropColumn;
+  let rightMoves = 0; // Count how many times we go right
 
   for (let row = 0; row < ROWS; row++) {
+    // For each row, use the peg at position based on current rightMoves
+    // This ensures we're hitting valid pegs
+    const currentCol = Math.min(rightMoves, row);
+
     // Find peg at current position
     const pegIndex = pegMap.findIndex(
       (p) => p.row === row && p.col === currentCol
@@ -100,15 +111,14 @@ function simulateDrop(
       randValue,
     });
 
-    // Update position for next row
-    // Going left keeps same column index, going right increments it
+    // Count right moves
     if (!goesLeft) {
-      currentCol++;
+      rightMoves++;
     }
   }
 
-  // Final position is the bin index
-  const binIndex = currentCol;
+  // Final bin index is the number of right moves
+  const binIndex = rightMoves;
 
   return { path, binIndex };
 }
