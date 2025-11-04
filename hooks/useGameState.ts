@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { GamePath } from "@/lib/fairness";
 
 interface BallPosition {
   x: number;
   y: number;
+}
+
+interface RoundHistory {
+  id: string;
+  betAmount: number;
+  dropColumn: number;
+  binIndex: number;
+  multiplier: number;
+  winAmount: number;
+  timestamp: number;
 }
 
 interface GameState {
@@ -18,13 +28,31 @@ interface GameState {
   roundId: string | null;
   commitHex: string | null;
   nonce: string | null;
+  history: RoundHistory[];
+  showConfetti: boolean;
 }
 
 const PEG_SPACING_X = 45;
 const PEG_SPACING_Y = 50;
 const ANIMATION_DELAY = 300; // ms per step
 
-export function useGameState(initialBalance: number = 100000) {
+export function useGameState(
+  initialBalance: number = 100000,
+  onPegHit?: () => void,
+  onWin?: (multiplier: number) => void
+) {
+  // Use refs to store callbacks so they're always up-to-date
+  const onPegHitRef = useRef(onPegHit);
+  const onWinRef = useRef(onWin);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onPegHitRef.current = onPegHit;
+  }, [onPegHit]);
+
+  useEffect(() => {
+    onWinRef.current = onWin;
+  }, [onWin]);
   const [state, setState] = useState<GameState>({
     isPlaying: false,
     ballPosition: null,
@@ -35,6 +63,8 @@ export function useGameState(initialBalance: number = 100000) {
     roundId: null,
     commitHex: null,
     nonce: null,
+    history: [],
+    showConfetti: false,
   });
 
   // Animate ball drop through path
@@ -68,6 +98,9 @@ export function useGameState(initialBalance: number = 100000) {
         // Mark peg as hit
         const pegKey = `${step.row}-${step.col}`;
         newHitPegs.add(pegKey);
+
+        // Play peg hit sound
+        onPegHitRef.current?.();
 
         setState((prev) => ({
           ...prev,
@@ -146,6 +179,21 @@ export function useGameState(initialBalance: number = 100000) {
 
         // 4. Update balance and final state
         const winAmount = Math.round(betAmount * startData.payoutMultiplier);
+        const showConfetti = startData.payoutMultiplier >= 9;
+
+        // Add to history
+        const newRound: RoundHistory = {
+          id: commitData.roundId,
+          betAmount,
+          dropColumn,
+          binIndex: finalBin,
+          multiplier: startData.payoutMultiplier,
+          winAmount,
+          timestamp: Date.now(),
+        };
+
+        // Call win callback
+        onWinRef.current?.(startData.payoutMultiplier);
 
         setState((prev) => ({
           ...prev,
@@ -153,6 +201,8 @@ export function useGameState(initialBalance: number = 100000) {
           finalBin,
           path: startData.path,
           balance: prev.balance - betAmount + winAmount,
+          history: [...prev.history, newRound],
+          showConfetti,
         }));
 
         // Show result for a moment
@@ -164,6 +214,7 @@ export function useGameState(initialBalance: number = 100000) {
           ballPosition: null,
           hitPegs: new Set(),
           finalBin: null,
+          showConfetti: false,
         }));
       } catch (error) {
         console.error("Error playing round:", error);

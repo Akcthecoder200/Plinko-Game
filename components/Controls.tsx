@@ -21,12 +21,12 @@ const Controls: React.FC<ControlsProps> = ({ onPlay, isPlaying, balance }) => {
   const quickBets = [10, 50, 100, 500, 1000];
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl">
-      <div className="space-y-6">
+    <div className="w-full max-w-2xl mx-auto p-3 sm:p-4 md:p-6 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-xl">
+      <div className="space-y-4 sm:space-y-6">
         {/* Balance Display */}
         <div className="text-center">
-          <div className="text-sm text-gray-400">Balance</div>
-          <div className="text-3xl font-bold text-white">
+          <div className="text-xs sm:text-sm text-gray-400">Balance</div>
+          <div className="text-2xl sm:text-3xl font-bold text-white">
             ${(balance / 100).toFixed(2)}
           </div>
         </div>
@@ -98,7 +98,7 @@ const Controls: React.FC<ControlsProps> = ({ onPlay, isPlaying, balance }) => {
         <button
           onClick={handlePlay}
           disabled={isPlaying || betAmount <= 0 || betAmount > balance}
-          className="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:from-gray-600 disabled:to-gray-600 rounded-xl font-bold text-white text-lg shadow-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
+          className="w-full py-3 sm:py-4 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:from-gray-600 disabled:to-gray-600 rounded-xl font-bold text-white text-base sm:text-lg shadow-lg transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
         >
           {isPlaying ? (
             <span className="flex items-center justify-center gap-2">
@@ -126,8 +126,10 @@ const Controls: React.FC<ControlsProps> = ({ onPlay, isPlaying, balance }) => {
         </button>
 
         {/* Keyboard Hint */}
-        <div className="text-center text-xs text-gray-500 space-y-1">
-          <div>⌨️ Keyboard: ← → to change column, Space to drop</div>
+        <div className="text-center text-[10px] sm:text-xs text-gray-500 space-y-1">
+          <div className="hidden sm:block">
+            ⌨️ Keyboard: ← → to change column, Space to drop
+          </div>
           <div>
             Expected:{" "}
             {betAmount > 0 ? `$${(betAmount / 100).toFixed(2)}` : "$0.00"} - $

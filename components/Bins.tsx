@@ -19,8 +19,8 @@ const Bins: React.FC<BinsProps> = ({
   selectedColumn,
 }) => {
   return (
-    <div className="w-full px-8">
-      <div className="flex justify-center gap-1 max-w-4xl mx-auto">
+    <div className="w-full px-2 sm:px-4 md:px-8 overflow-x-auto">
+      <div className="flex justify-center gap-0.5 sm:gap-1 max-w-4xl mx-auto min-w-min">
         {PAYOUT_MULTIPLIERS.map((multiplier, index) => {
           const isHighlighted = highlightedBin === index;
           const isSelected = selectedColumn === index;
@@ -40,19 +40,20 @@ const Bins: React.FC<BinsProps> = ({
               key={index}
               className={`
                 relative flex flex-col items-center justify-center
-                min-w-[50px] h-24 rounded-lg border-2 transition-all duration-300
+                w-7 sm:w-10 md:min-w-[50px] h-16 sm:h-20 md:h-24 
+                rounded-md sm:rounded-lg border sm:border-2 transition-all duration-300
                 ${colorClass}
                 ${
                   isHighlighted
-                    ? "scale-110 ring-4 ring-yellow-400 shadow-lg shadow-yellow-400/50"
+                    ? "scale-110 ring-2 sm:ring-4 ring-yellow-400 shadow-lg shadow-yellow-400/50"
                     : ""
                 }
-                ${isSelected ? "ring-2 ring-purple-400" : ""}
+                ${isSelected ? "ring-1 sm:ring-2 ring-purple-400" : ""}
               `}
             >
               {/* Multiplier */}
               <div
-                className={`text-lg font-bold ${
+                className={`text-xs sm:text-base md:text-lg font-bold ${
                   isHighlighted ? "text-yellow-300 scale-125" : "text-white"
                 } transition-all`}
               >
@@ -60,7 +61,9 @@ const Bins: React.FC<BinsProps> = ({
               </div>
 
               {/* Bin number */}
-              <div className="text-xs text-gray-400 mt-1">{index}</div>
+              <div className="text-[8px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">
+                {index}
+              </div>
 
               {/* Glow effect for high multipliers */}
               {multiplier >= 16 && (

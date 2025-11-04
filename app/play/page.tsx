@@ -1,12 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Board from "@/components/Board";
 import Bins from "@/components/Bins";
 import Controls from "@/components/Controls";
+import History from "@/components/History";
+import Confetti from "@/components/Confetti";
 import { useGameState } from "@/hooks/useGameState";
+import { useSoundManager } from "@/components/SoundManager";
 
 export default function PlayPage() {
+  const [selectedColumn, setSelectedColumn] = useState(6);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Sound manager
+  const soundManager = useSoundManager();
+
+  useEffect(() => {
+    if (soundManager) {
+      soundManager.setMuted(isMuted);
+    }
+  }, [isMuted, soundManager]);
+
+  const handlePegHit = useCallback(() => {
+    if (soundManager) {
+      soundManager.pegHit();
+    }
+  }, [soundManager]);
+
+  const handleWin = useCallback(
+    (multiplier: number) => {
+      if (!soundManager) return;
+
+      if (multiplier >= 16) {
+        soundManager.bigWin();
+      } else if (multiplier > 1) {
+        soundManager.win();
+      } else {
+        soundManager.loss();
+      }
+    },
+    [soundManager]
+  );
+
   const {
     isPlaying,
     ballPosition,
@@ -16,10 +52,9 @@ export default function PlayPage() {
     playRound,
     commitHex,
     nonce,
-  } = useGameState(100000); // Start with $1000.00
-
-  const [selectedColumn, setSelectedColumn] = useState(6);
-  const [isMuted, setIsMuted] = useState(false);
+    history,
+    showConfetti,
+  } = useGameState(100000, handlePegHit, handleWin);
 
   // Keyboard controls
   useEffect(() => {
@@ -45,20 +80,24 @@ export default function PlayPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPlaying]);
 
-  const handlePlay = (betAmount: number, dropColumn: number) => {
+  const handlePlay = async (betAmount: number, dropColumn: number) => {
+    // Initialize sound on first interaction
+    if (soundManager) {
+      await soundManager.initialize();
+    }
     setSelectedColumn(dropColumn);
     playRound(betAmount, dropColumn);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Header */}
       <header className="border-b border-white/10 backdrop-blur-sm bg-black/20">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <a
               href="/"
-              className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"
             >
               🎰 Plinko Lab
             </a>
@@ -88,16 +127,16 @@ export default function PlayPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {/* Game Board - Main Area */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-3 sm:space-y-6">
             <Board hitPegs={hitPegs} ballPosition={ballPosition} />
             <Bins highlightedBin={finalBin} selectedColumn={selectedColumn} />
           </div>
 
           {/* Controls & Info - Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <Controls
               onPlay={handlePlay}
               isPlaying={isPlaying}
@@ -170,13 +209,20 @@ export default function PlayPage() {
 
             {/* Game Stats */}
             {finalBin !== null && (
-              <div className="p-4 bg-gradient-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-xl border border-green-400/30 animate-pulse-slow">
+              <div className="p-4 bg-linear-to-r from-green-500/20 to-blue-500/20 backdrop-blur-sm rounded-xl border border-green-400/30 animate-pulse-slow">
                 <h3 className="text-sm font-semibold text-green-300 mb-2">
                   🎉 Last Result
                 </h3>
                 <div className="text-2xl font-bold text-white">
                   Bin {finalBin}
                 </div>
+              </div>
+            )}
+
+            {/* Round History */}
+            {history.length > 0 && (
+              <div className="p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10">
+                <History rounds={history} />
               </div>
             )}
           </div>
@@ -187,6 +233,9 @@ export default function PlayPage() {
       <footer className="border-t border-white/10 mt-12 py-6 text-center text-sm text-gray-500">
         <p>Provably Fair • Deterministic RNG • 100% Verifiable</p>
       </footer>
+
+      {/* Confetti Animation */}
+      {showConfetti && <Confetti active={showConfetti} />}
     </div>
   );
 }
