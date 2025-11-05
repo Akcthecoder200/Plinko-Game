@@ -1,12 +1,12 @@
 // Prisma schema for Plinko Lab
-// Database: SQLite
+// Database: PostgreSQL (Neon)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
