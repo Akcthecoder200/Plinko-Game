@@ -9,7 +9,6 @@
   },
   "build": {
     "env": {
-      "DATABASE_URL": "@database_url",
       "SERVER_SEED_SALT": "@server_seed_salt"
     }
   }
