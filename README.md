@@ -810,19 +810,80 @@ Plink Lab/
 - [ ] Verification page reproduces results
 - [ ] Test vectors match expected outcomes
 
-### Automated Testing (TODO)
+### Automated Testing ✅
+
+**Run Tests:**
 
 ```bash
-npm test
+npm test                 # Run all tests
+npm run test:watch       # Watch mode for development
+npm run test:coverage    # Generate coverage report
 ```
 
-**Test Coverage Needed:**
+**Test Results:**
 
-- Unit tests for `lib/hash.ts` (SHA-256)
-- Unit tests for `lib/prng.ts` (xorshift32)
-- Unit tests for `lib/fairness.ts` (game logic)
-- Integration tests for API routes
-- E2E tests for user flows
+```
+Test Suites: 1 passed, 1 total
+Tests:       23 passed, 23 total
+Time:        1.07s
+```
+
+**Test Coverage:**
+
+✅ **Unit Tests Implemented** (`__tests__/fairness.test.ts`):
+
+1. **DeterministicRNG Tests** (3 tests)
+
+   - Produces identical sequences from same seed
+   - Produces different sequences from different seeds
+   - Handles zero seed correctly with fallback
+
+2. **Commit-Reveal Protocol** (3 tests)
+
+   - Generates valid commit hash (SHA-256)
+   - Different inputs produce different commits
+   - Combined seed generation is deterministic
+
+3. **Game Result Determinism** (3 tests)
+
+   - ✅ **Replay Determinism**: Same inputs = same outcome
+   - Different seeds produce different outcomes
+   - Different drop columns influence results
+
+4. **Test Vector Verification** (3 tests)
+
+   - ✅ **Example Round**: Verifies spec test vector
+   - Edge drop (column 0) validation
+   - Center drop (column 6) validation
+
+5. **Game Verification** (3 tests)
+
+   - ✅ **Valid Result**: Successfully verifies correct games
+   - Fails verification with wrong bin index
+   - Fails verification with tampered peg map
+
+6. **Payout Multipliers** (2 tests)
+
+   - Correct payout table (1.0x - 33.0x)
+   - Symmetric payouts (bins 0↔12, 1↔11, etc.)
+
+7. **Path Generation** (3 tests)
+
+   - Generates exactly 12 path steps (one per row)
+   - All path steps have valid values
+   - Final bin matches right move count
+
+8. **Edge Cases** (3 tests)
+   - Handles minimum drop column (0)
+   - Handles maximum drop column (12)
+   - Throws errors for invalid columns (-1, 13)
+
+**Future Test Coverage:**
+
+- [ ] Integration tests for API routes
+- [ ] E2E tests with Playwright for user flows
+- [ ] Performance tests for PRNG speed
+- [ ] Stress tests with 10,000+ rounds
 
 ## 🚀 Deployment
 
